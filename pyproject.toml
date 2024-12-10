@@ -40,3 +40,10 @@ build-backend = "hatchling.build"
 [[tool.mypy.overrides]]
 module = "mido"
 ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+lint.extend-select = ["I"]
+
+[tool.bandit]
+skips = ["B101"]

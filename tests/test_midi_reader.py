@@ -1,6 +1,6 @@
 import pytest
 
-from midi2cmd.midi_reader import CommandKey, CommandBindings
+from midi2cmd.midi_reader import CommandBindings, CommandKey
 
 
 @pytest.fixture
