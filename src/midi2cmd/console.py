@@ -4,29 +4,27 @@ from mido import get_input_names
 from midi2cmd.midi_reader import process_message, read_midi_messages
 
 
-@click.command(context_settings=dict(ignore_unknown_options=True))
+@click.command()
 @click.option(
     "-p",
     "--port",
     "port_name",
-    required=False,
     help="Name of the MIDI input port to use.",
 )
 @click.option(
     "-d",
     "--dump",
     is_flag=True,
+    required=False,
     help="Print MIDI messages as they are received.",
 )
 def main(port_name, dump):
     """Read and print MIDI messages from the specified input port."""
-    if click.get_current_context().get_help_option_names():
-        click.echo(main.get_help(click.Context(main)))
-        click.Context(main).exit()
 
-    if not port_name:
+    if port_name is None:
         click.echo("Error: Missing option '-p' / '--port'.")
-        click.Context(main).exit()
+        click.Context(main).exit(2)
+
     try:
         available_ports = get_input_names()
         if port_name not in available_ports:
