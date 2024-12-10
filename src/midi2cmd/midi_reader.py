@@ -1,5 +1,6 @@
-from mido import open_input
 from collections import namedtuple
+
+from mido import open_input
 
 
 def read_midi_messages(port_name):
@@ -10,14 +11,19 @@ def read_midi_messages(port_name):
 
 
 def process_message(message):
-    CommandKey = namedtuple('CommandKey', ['channel', 'type', 'control'])
-    
+    CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
+
     cmds = {
-        CommandKey(10, "control_change", 9): "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))",
-        CommandKey(10, "control_change", 25): "xdotool key ctrl+shift+h",  # raise hand in Meet
-        CommandKey(10, "pitch", None): "echo pitch changed",
+        CommandKey(
+            10, "control_change", 9
+        ): "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))",
+        CommandKey(
+            10, "control_change", 18
+        ): "xdotool key ctrl+shift+h",  # raise hand in Meet
+        CommandKey(10, "pitchwheel", None): "echo pitch changed",
     }
-    
-    key = CommandKey(message.type, message.control, getattr(message, 'value', None))
+
+    key = CommandKey(message.channel, message.type, getattr(message, "control", None))
     cmd = cmds.get(key)
-    print(cmd)
+    if cmd:
+        print(cmd)
