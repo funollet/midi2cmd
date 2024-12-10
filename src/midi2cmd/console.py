@@ -55,10 +55,12 @@ def dump(ctx, port_name):
     """Print MIDI messages as they are received."""
     # config = ctx.obj["config"]
 
-    available_ports = get_input_names()
-    if port_name not in available_ports:
+    try:
+        with open_input(port_name) as inport:
+            pass
+    except OSError:
         raise click.BadParameter(
-            f"Port '{port_name}' is not available. Available ports: {', '.join(available_ports)}"
+            f"Port '{port_name}' is not available. Hint: use `midi2cmd list`."
         )
 
     with open_input(port_name) as inport:
@@ -79,10 +81,12 @@ def run(ctx, port_name):
     """Run the MIDI command processor."""
     config = ctx.obj["config"]
 
-    available_ports = get_input_names()
-    if port_name not in available_ports:
+    try:
+        with open_input(port_name) as inport:
+            pass
+    except OSError:
         raise click.BadParameter(
-            f"Port '{port_name}' is not available. Available ports: {', '.join(available_ports)}"
+            f"Port '{port_name}' is not available. Hint: use `midi2cmd list`."
         )
 
     cmd_bindings = CommandBindings()

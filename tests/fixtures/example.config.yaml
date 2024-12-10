@@ -8,3 +8,5 @@ channels:
       9: "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
       # raise hand in Meet
       18: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
+
+port: "X-TOUCH MINI MIDI 1"
