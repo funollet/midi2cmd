@@ -1,10 +1,27 @@
 from collections import namedtuple
 
+import yaml
+
 CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
 
 
-def process_message(message, commands):
+def load_commands_from_yaml(file_path):
+    with open(file_path, "r") as file:
+        config = yaml.safe_load(file)
 
+    command_keys = {}
+    for channel, types in config["channels"].items():
+        if "pitch" in types:
+            command = types["pitch"]
+            command_keys[CommandKey(channel, "pitchwheel", None)] = command
+        if "control" in types:
+            for control, command in types["control"].items():
+                command_keys[CommandKey(channel, "control_change", control)] = command
+
+    return command_keys
+
+
+def process_message(message):
     cmds = {
         CommandKey(
             10, "control_change", 9
