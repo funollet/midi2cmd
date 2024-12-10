@@ -15,7 +15,7 @@ midi2cmd = "midi2cmd.console:main"
 
 [dependency-groups]
 dev = [
-    "aider-chat>=0.66.0",
+    "aider-chat[browser]>=0.67.0",
     "pytest>=8.3.4",
 ]
 
