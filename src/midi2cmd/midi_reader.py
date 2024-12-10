@@ -5,34 +5,35 @@ import yaml
 CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
 
 
-def load_commands_from_yaml(file_path):
-    with open(file_path, "r") as file:
-        config = yaml.safe_load(file)
+class Commands(dict):
+    # Usage:
+    #
+    # c = Commands()
+    # c[CommandKey(channel=10, type="control_change", control=18)] = "echo foo"
 
-    command_keys = {}
-    for channel, types in config["channels"].items():
-        if "pitch" in types:
-            command = types["pitch"]
-            command_keys[CommandKey(channel, "pitchwheel", None)] = command
-        if "control" in types:
-            for control, command in types["control"].items():
-                command_keys[CommandKey(channel, "control_change", control)] = command
+    def __init__(self, *args):
+        super().__init__(*args)
 
-    return command_keys
+    def from_yaml(self, source):
+        """Gets a stream and parses yaml to CommandBindings"""
+        config = yaml.safe_load(source)
+        for channel, types in config["channels"].items():
+            if "pitch" in types:
+                command = types["pitch"]
+                key = CommandKey(channel, "pitchwheel", None)
+                self.update({key: command})
+            if "control" in types:
+                for control, command in types["control"].items():
+                    key = CommandKey(channel, "control_change", control)
+                    self.update({key: command})
 
 
 def process_message(message):
-    cmds = {
-        CommandKey(
-            10, "control_change", 9
-        ): "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))",
-        CommandKey(
-            10, "control_change", 18
-        ): "xdotool key ctrl+shift+h",  # raise hand in Meet
-        CommandKey(10, "pitchwheel", None): "echo pitch changed",
-    }
+    cmd_mappings = Commands()
+    with open("tests/fixtures/example.config.yaml", "r") as file:
+        cmd_mappings.from_yaml(file)
 
     key = CommandKey(message.channel, message.type, getattr(message, "control", None))
-    cmd = cmds.get(key)
+    cmd = cmd_mappings.get(key)
     if cmd:
         print(cmd)
