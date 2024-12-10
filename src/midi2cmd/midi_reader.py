@@ -1,3 +1,5 @@
+import os
+import subprocess
 from collections import namedtuple
 
 import yaml
@@ -33,7 +35,17 @@ class CommandBindings(dict):
         return self.get(key)
 
 
-def process_message(message, cmd_mappings):
+def get_value(message):
+    if message.type == "pitchwheel":
+        return message.pitch
+    if message.type == "control_change":
+        return message.value
+
+
+def process_message(message, cmd_mappings: CommandBindings):
+    value = get_value(message)
     cmd = cmd_mappings.for_message(message)
+    env = os.environ.copy()
+    env["MIDI_VALUE"] = str(value)
     if cmd:
-        print(cmd)
+        subprocess.Popen(cmd, shell=True, env=env)
