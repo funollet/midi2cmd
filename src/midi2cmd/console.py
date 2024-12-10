@@ -19,8 +19,12 @@ from mido import get_input_names
 )
 def main(port_name, dump):
     """Read and print MIDI messages from the specified input port."""
-    if not port_name:
+    if click.get_current_context().get_help_option_names():
         click.echo(main.get_help(click.Context(main)))
+        click.Context(main).exit()
+
+    if not port_name:
+        click.echo("Error: Missing option '-p' / '--port'.")
         click.Context(main).exit()
     try:
         available_ports = get_input_names()
