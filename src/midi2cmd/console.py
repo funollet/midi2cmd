@@ -18,8 +18,21 @@ from midi2cmd.midi_reader import process_message, read_midi_messages
     required=False,
     help="Print MIDI messages as they are received.",
 )
-def main(port_name, dump):
-    """Read and print MIDI messages from the specified input port."""
+@click.option(
+    "-l",
+    "--list",
+    "list_ports",
+    is_flag=True,
+    help="List available MIDI input ports.",
+)
+def main(port_name, dump, list_ports):
+    """Read and print MIDI messages from the specified input port or list available ports."""
+    if list_ports:
+        available_ports = get_input_names()
+        click.echo("Available MIDI input ports:")
+        for port in available_ports:
+            click.echo(f"- {port}")
+        return
 
     if port_name is None:
         click.echo("Error: Missing option '-p' / '--port'.")
