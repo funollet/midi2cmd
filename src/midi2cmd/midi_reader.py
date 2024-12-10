@@ -27,9 +27,13 @@ class CommandBindings(dict):
                     key = CommandKey(channel, "control_change", control)
                     self.update({key: command})
 
+    def for_message(self, msg):
+        """Returns the command associated to a given message, or None"""
+        key = CommandKey(msg.channel, msg.type, getattr(msg, "control", None))
+        return self.get(key)
+
 
 def process_message(message, cmd_mappings):
-    key = CommandKey(message.channel, message.type, getattr(message, "control", None))
-    cmd = cmd_mappings.get(key)
+    cmd = cmd_mappings.for_message(message)
     if cmd:
         print(cmd)
