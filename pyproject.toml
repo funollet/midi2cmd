@@ -11,14 +11,19 @@ dependencies = [
 ]
 
 [project.scripts]
-midi2cmd = "src.midi2cmd.console:main"
+midi2cmd = "midi2cmd.console:main"
 
 [dependency-groups]
 dev = [
     "aider-chat>=0.66.0",
+    "pytest>=8.3.4",
 ]
 
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
 exclude = [ ".venv" ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

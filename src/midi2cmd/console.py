@@ -1,6 +1,7 @@
 import click
-from midi_reader import process_message, read_midi_messages
 from mido import get_input_names
+
+from midi2cmd.midi_reader import process_message, read_midi_messages
 
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
