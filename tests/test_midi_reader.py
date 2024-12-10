@@ -1,6 +1,6 @@
 import pytest
 
-from midi2cmd.midi_reader import CommandKey, Commands
+from midi2cmd.midi_reader import CommandKey, CommandBindings
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def cmds():
               # raise hand in Meet
               18: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
     """
-    c = Commands()
+    c = CommandBindings()
     c.from_yaml(config_yaml)
     return c
 
@@ -44,7 +44,7 @@ def test_yaml_reads_commands(cmds):
 
 
 def test_commands_from_iterable():
-    c = Commands()
+    c = CommandBindings()
     c[CommandKey(10, "control_change", 18)] = (
         "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
     )
@@ -55,5 +55,5 @@ def test_commands_from_iterable():
 
 
 def test_commands_init():
-    c = Commands([(CommandKey(10, "control_change", 18), "echo foo")])
+    c = CommandBindings([(CommandKey(10, "control_change", 18), "echo foo")])
     assert c[CommandKey(10, "control_change", 18)] == "echo foo"

@@ -5,10 +5,10 @@ import yaml
 CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
 
 
-class Commands(dict):
+class CommandBindings(dict):
     # Usage:
     #
-    # c = Commands()
+    # c = CommandBindings()
     # c[CommandKey(channel=10, type="control_change", control=18)] = "echo foo"
 
     def __init__(self, *args):
@@ -29,7 +29,7 @@ class Commands(dict):
 
 
 def process_message(message):
-    cmd_mappings = Commands()
+    cmd_mappings = CommandBindings()
     with open("tests/fixtures/example.config.yaml", "r") as file:
         cmd_mappings.from_yaml(file)
 
