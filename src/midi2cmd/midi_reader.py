@@ -1,17 +1,9 @@
 from collections import namedtuple
 
-from mido import open_input
+CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
 
 
-def read_midi_messages(port_name):
-    """Read and yield MIDI messages from the specified input port."""
-    with open_input(port_name) as inport:
-        for message in inport:
-            yield message
-
-
-def process_message(message):
-    CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
+def process_message(message, commands):
 
     cmds = {
         CommandKey(

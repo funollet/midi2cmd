@@ -1,7 +1,7 @@
 import click
-from mido import get_input_names
+from mido import get_input_names, open_input
 
-from midi2cmd.midi_reader import process_message, read_midi_messages
+from midi2cmd.midi_reader import process_message
 
 
 @click.command()
@@ -47,11 +47,12 @@ def main(port_name, dump, list_ports):
     except Exception as e:
         raise click.ClickException(f"Error checking MIDI ports: {e}")
 
-    for message in read_midi_messages(port_name):
-        if dump:
-            click.echo(f"Received message: {message}")
-        else:
-            process_message(message)
+    with open_input(port_name) as inport:
+        for message in inport:
+            if dump:
+                click.echo(f"Received message: {message}")
+            else:
+                process_message(message)
 
 
 if __name__ == "__main__":
