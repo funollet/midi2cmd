@@ -1,0 +1,8 @@
+channels:
+  10:
+    pitch: "echo $MIDI_VALUE"
+    control:
+      # control volume
+      9: "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
+      # raise hand in Meet
+      25: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
