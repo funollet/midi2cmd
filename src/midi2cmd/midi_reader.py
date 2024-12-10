@@ -28,11 +28,7 @@ class CommandBindings(dict):
                     self.update({key: command})
 
 
-def process_message(message):
-    cmd_mappings = CommandBindings()
-    with open("tests/fixtures/example.config.yaml", "r") as file:
-        cmd_mappings.from_yaml(file)
-
+def process_message(message, cmd_mappings):
     key = CommandKey(message.channel, message.type, getattr(message, "control", None))
     cmd = cmd_mappings.get(key)
     if cmd:

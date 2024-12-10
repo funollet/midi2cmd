@@ -1,3 +1,5 @@
+# ~/.config/midi2cmd/config.yaml
+#
 channels:
   10:
     pitch: "echo $MIDI_VALUE"

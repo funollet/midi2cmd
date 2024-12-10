@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import click
 from mido import get_input_names, open_input
 
-from midi2cmd.midi_reader import process_message
+from midi2cmd.midi_reader import CommandBindings, process_message
 
 
 @click.command()
@@ -47,12 +49,17 @@ def main(port_name, dump, list_ports):
     except Exception as e:
         raise click.ClickException(f"Error checking MIDI ports: {e}")
 
+    cmd_bindings = CommandBindings()
+    file_path = Path("~/.config/midi2cmd/config.yaml").expanduser()
+    with file_path.open("r") as file:
+        cmd_bindings.from_yaml(file)
+
     with open_input(port_name) as inport:
         for message in inport:
             if dump:
                 click.echo(f"Received message: {message}")
             else:
-                process_message(message)
+                process_message(message, cmd_bindings)
 
 
 if __name__ == "__main__":
