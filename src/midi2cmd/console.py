@@ -10,22 +10,23 @@ from midi2cmd.midi_reader import CommandBindings, process_message
 @click.option(
     "-c",
     "--config",
+    "config_path",
     type=click.Path(exists=True, readable=True),
     default=Path("~/.config/midi2cmd/config.yaml").expanduser(),
     help="Configuration file.",
 )
 @click.pass_context
-def cli(ctx, config):
+def cli(ctx, config_path):
     """MIDI command line interface."""
     ctx.ensure_object(dict)
-    ctx.obj["config"] = config
+    ctx.obj["config_path"] = config_path
 
 
 @cli.command()
 @click.pass_context
 def list(ctx):
     """List available MIDI input ports."""
-    config = ctx.obj["config"]
+    config_path = ctx.obj["config_path"]
     available_ports = get_input_names()
     click.echo("Available MIDI input ports:")
     for port in available_ports:
@@ -43,7 +44,7 @@ def list(ctx):
 @click.pass_context
 def dump(ctx, port_name):
     """Print MIDI messages as they are received."""
-    config = ctx.obj["config"]
+    config_path = ctx.obj["config_path"]
 
     available_ports = get_input_names()
     if port_name not in available_ports:
@@ -67,7 +68,7 @@ def dump(ctx, port_name):
 @click.pass_context
 def run(ctx, port_name):
     """Run the MIDI command processor."""
-    config = ctx.obj["config"]
+    config_path = ctx.obj["config_path"]
 
     available_ports = get_input_names()
     if port_name not in available_ports:
@@ -76,7 +77,7 @@ def run(ctx, port_name):
         )
 
     cmd_bindings = CommandBindings()
-    with config.open("r") as file:
+    with config_path.open("r") as file:
         cmd_bindings.from_yaml(file)
 
     with open_input(port_name) as inport:
