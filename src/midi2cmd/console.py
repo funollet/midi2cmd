@@ -27,7 +27,14 @@ from midi2cmd.midi_reader import CommandBindings, process_message
     is_flag=True,
     help="List available MIDI input ports.",
 )
-def main(port_name, dump, list_ports):
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(exists=True, readable=True),
+    default=Path("~/.config/midi2cmd/config.yaml").expanduser(),
+    help="Configuration file.",
+)
+def main(port_name, dump, list_ports, config):
     """Read and print MIDI messages from the specified input port or list available ports."""
     if list_ports:
         available_ports = get_input_names()
@@ -50,14 +57,13 @@ def main(port_name, dump, list_ports):
         raise click.ClickException(f"Error checking MIDI ports: {e}")
 
     cmd_bindings = CommandBindings()
-    file_path = Path("~/.config/midi2cmd/config.yaml").expanduser()
-    with file_path.open("r") as file:
+    with config.open("r") as file:
         cmd_bindings.from_yaml(file)
 
     with open_input(port_name) as inport:
         for message in inport:
             if dump:
-                click.echo(f"Received message: {message}")
+                click.echo(f"{message}")
             else:
                 process_message(message, cmd_bindings)
 
