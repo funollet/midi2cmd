@@ -6,27 +6,7 @@ from mido import get_input_names, open_input
 from midi2cmd.midi_reader import CommandBindings, process_message
 
 
-@click.command()
-@click.option(
-    "-p",
-    "--port",
-    "port_name",
-    help="Name of the MIDI input port to use.",
-)
-@click.option(
-    "-d",
-    "--dump",
-    is_flag=True,
-    required=False,
-    help="Print MIDI messages as they are received.",
-)
-@click.option(
-    "-l",
-    "--list",
-    "list_ports",
-    is_flag=True,
-    help="List available MIDI input ports.",
-)
+@click.group()
 @click.option(
     "-c",
     "--config",
@@ -34,27 +14,66 @@ from midi2cmd.midi_reader import CommandBindings, process_message
     default=Path("~/.config/midi2cmd/config.yaml").expanduser(),
     help="Configuration file.",
 )
-def main(port_name, dump, list_ports, config):
-    """Read and print MIDI messages from the specified input port or list available ports."""
-    if list_ports:
-        available_ports = get_input_names()
-        click.echo("Available MIDI input ports:")
-        for port in available_ports:
-            click.echo(f"- {port}")
-        return
+@click.pass_context
+def cli(ctx, config):
+    """MIDI command line interface."""
+    ctx.ensure_object(dict)
+    ctx.obj["config"] = config
 
-    if port_name is None:
-        click.echo("Error: Missing option '-p' / '--port'.")
-        click.Context(main).exit(2)
 
-    try:
-        available_ports = get_input_names()
-        if port_name not in available_ports:
-            raise click.BadParameter(
-                f"Port '{port_name}' is not available. Available ports: {', '.join(available_ports)}"
-            )
-    except Exception as e:
-        raise click.ClickException(f"Error checking MIDI ports: {e}")
+@cli.command()
+@click.pass_context
+def list(ctx):
+    """List available MIDI input ports."""
+    config = ctx.obj["config"]
+    available_ports = get_input_names()
+    click.echo("Available MIDI input ports:")
+    for port in available_ports:
+        click.echo(f"- {port}")
+
+
+@cli.command()
+@click.option(
+    "-p",
+    "--port",
+    "port_name",
+    help="Name of the MIDI input port to use.",
+    required=True,
+)
+@click.pass_context
+def dump(ctx, port_name):
+    """Print MIDI messages as they are received."""
+    config = ctx.obj["config"]
+
+    available_ports = get_input_names()
+    if port_name not in available_ports:
+        raise click.BadParameter(
+            f"Port '{port_name}' is not available. Available ports: {', '.join(available_ports)}"
+        )
+
+    with open_input(port_name) as inport:
+        for message in inport:
+            click.echo(f"{message}")
+
+
+@cli.command()
+@click.option(
+    "-p",
+    "--port",
+    "port_name",
+    help="Name of the MIDI input port to use.",
+    required=True,
+)
+@click.pass_context
+def run(ctx, port_name):
+    """Run the MIDI command processor."""
+    config = ctx.obj["config"]
+
+    available_ports = get_input_names()
+    if port_name not in available_ports:
+        raise click.BadParameter(
+            f"Port '{port_name}' is not available. Available ports: {', '.join(available_ports)}"
+        )
 
     cmd_bindings = CommandBindings()
     with config.open("r") as file:
@@ -62,11 +81,8 @@ def main(port_name, dump, list_ports, config):
 
     with open_input(port_name) as inport:
         for message in inport:
-            if dump:
-                click.echo(f"{message}")
-            else:
-                process_message(message, cmd_bindings)
+            process_message(message, cmd_bindings)
 
 
 if __name__ == "__main__":
-    main()
+    cli()

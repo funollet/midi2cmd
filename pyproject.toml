@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-midi2cmd = "midi2cmd.console:main"
+midi2cmd = "midi2cmd.console:cli"
 
 [dependency-groups]
 dev = [
@@ -23,6 +23,8 @@ dev = [
 venvPath = "."
 venv = ".venv"
 exclude = [ ".venv" ]
+useLibraryCodeForTypes = true
+reportMissingTypeStubs = true
 
 [build-system]
 requires = ["hatchling"]
