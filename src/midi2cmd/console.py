@@ -34,7 +34,8 @@ def main(port_name, dump):
     for message in read_midi_messages(port_name):
         if dump:
             click.echo(f"Received message: {message}")
-        process_message(message)
+        else:
+            process_message(message)
 
 
 if __name__ == "__main__":
