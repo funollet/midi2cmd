@@ -11,7 +11,13 @@ from mido import get_input_names
     required=False,
     help="Name of the MIDI input port to use.",
 )
-def main(port_name):
+@click.option(
+    "-d",
+    "--dump",
+    is_flag=True,
+    help="Print MIDI messages as they are received.",
+)
+def main(port_name, dump):
     """Read and print MIDI messages from the specified input port."""
     if not port_name:
         click.echo(main.get_help(click.Context(main)))
@@ -26,6 +32,8 @@ def main(port_name):
         raise click.ClickException(f"Error checking MIDI ports: {e}")
 
     for message in read_midi_messages(port_name):
+        if dump:
+            click.echo(f"Received message: {message}")
         process_message(message)
 
 
