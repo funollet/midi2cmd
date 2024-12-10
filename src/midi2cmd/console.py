@@ -4,12 +4,12 @@ from midi_reader import read_midi_messages
 
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
-@click.option('--port', 'port_name', required=True, help='Name of the MIDI input port to use.')
+@click.option('--port', 'port_name', required=False, help='Name of the MIDI input port to use.')
 def main(port_name):
     """Read and print MIDI messages from the specified input port."""
     if not port_name:
         click.echo(main.get_help(click.Context(main)))
-        return
+        click.Context(main).exit()
     try:
         available_ports = mido.get_input_names()
         if port_name not in available_ports:
