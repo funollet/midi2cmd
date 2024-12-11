@@ -45,11 +45,11 @@ def load_config_yaml(fname: str) -> str:
 @click.option(
     "-p",
     "--port",
-    "port_name",
+    "port",
     help="Name of the MIDI input port to use.",
 )
 @click.pass_context
-def cli(ctx, config_path, port_name):
+def cli(ctx, config_path, port):
     """MIDI command line interface."""
 
     # ctx.obj is used to store shared state or defaults between commands.
@@ -59,7 +59,7 @@ def cli(ctx, config_path, port_name):
 
     # Preserve parameters.
     ctx.obj["config"] = cfg_yaml
-    ctx.obj["port_name"] = port_name
+    ctx.obj["port"] = port
 
 
 @cli.command()
@@ -75,11 +75,11 @@ def list():
 @click.pass_context
 def dump(ctx):
     """Print MIDI messages as they are received."""
-    port_name = ctx.obj["port_name"]
+    port = ctx.obj["port"]
 
-    validate_midi_port(port_name)
+    validate_midi_port(port)
 
-    with open_input(port_name) as inport:
+    with open_input(port) as inport:
         for message in inport:
             click.echo(f"{message}")
 
@@ -88,14 +88,14 @@ def dump(ctx):
 @click.pass_context
 def run(ctx):
     """Run the MIDI command processor."""
-    config, port_name = ctx.obj["config"], ctx.obj["port_name"]
+    config, port = ctx.obj["config"], ctx.obj["port"]
 
-    validate_midi_port(port_name)
+    validate_midi_port(port)
 
     cmd_bindings = CommandBindings()
     cmd_bindings.from_yaml(config)
 
-    with open_input(port_name) as inport:
+    with open_input(port) as inport:
         for message in inport:
             process_message(message, cmd_bindings)
 
