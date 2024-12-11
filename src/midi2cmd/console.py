@@ -31,7 +31,7 @@ def load_config_yaml(fname: str) -> str:
     except FileNotFoundError:
         raise click.BadParameter(f"Can't read file {fname}.")
 
-    return cfg_yaml
+    return yaml.safe_load(cfg_yaml)
 
 
 @click.group()
@@ -56,12 +56,11 @@ def cli(ctx, config_path, port):
     # ctx.obj is used to store shared state or defaults between commands.
     ctx.ensure_object(dict)
 
-    cfg_yaml = load_config_yaml(config_path)
-    cfg = yaml.safe_load(cfg_yaml)
+    cfg = load_config_yaml(config_path)
 
     # Preserve parameters.
-    ctx.obj["config"] = cfg_yaml
     ctx.obj["port"] = port or cfg.get("port")
+    ctx.obj["channels"] = cfg.get("channels")
 
 
 @cli.command()
@@ -90,12 +89,12 @@ def dump(ctx):
 @click.pass_context
 def run(ctx):
     """Run the MIDI command processor."""
-    config, port = ctx.obj["config"], ctx.obj["port"]
+    channels, port = ctx.obj["channels"], ctx.obj["port"]
 
     validate_midi_port(port)
 
     cmd_bindings = CommandBindings()
-    cmd_bindings.from_yaml(config)
+    cmd_bindings.load(channels)
 
     with open_input(port) as inport:
         for message in inport:

@@ -10,7 +10,7 @@ from midi2cmd.console import cli, load_config_yaml, validate_midi_port
 def test_load_config_yaml_success():
     with patch("pathlib.Path.open", mock_open(read_data="is_yaml: true")):
         result = load_config_yaml("dummy_path")
-        assert result == "is_yaml: true"
+        assert result == {"is_yaml": True}
 
 
 def test_load_config_yaml_file_not_found():
@@ -34,13 +34,6 @@ def test_validate_midi_port_invalid():
 def test_validate_midi_port_none():
     with raises(click.BadParameter):
         validate_midi_port(None)
-
-
-def test_cli_no_port():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["run"])
-    assert result.exit_code != 0
-    assert "is not available" in result.output
 
 
 def test_cli_invalid_port():

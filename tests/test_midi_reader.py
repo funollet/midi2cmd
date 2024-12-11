@@ -6,18 +6,17 @@ from midi2cmd.midi_reader import CommandBindings, CommandKey
 @pytest.fixture
 def cmds():
     """Fixture to parse command keys from YAML."""
-    config_yaml = """
-        channels:
-          10:
-            pitch: "echo $MIDI_VALUE"
-            control:
-              # control volume
-              9: "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
-              # raise hand in Meet
-              18: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
-    """
+    channels = {
+        10: {
+            "control": {
+                9: "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * " "512))",
+                18: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h",
+            },
+            "pitch": "echo $MIDI_VALUE",
+        }
+    }
     c = CommandBindings()
-    c.from_yaml(config_yaml)
+    c.load(channels)
     return c
 
 
