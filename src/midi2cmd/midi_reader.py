@@ -2,8 +2,6 @@ import os
 import subprocess
 from collections import namedtuple
 
-import yaml
-
 CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
 
 
@@ -16,10 +14,9 @@ class CommandBindings(dict):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def from_yaml(self, source):
-        """Gets a stream and parses yaml to CommandBindings"""
-        config = yaml.safe_load(source)
-        for channel, types in config["channels"].items():
+    def load(self, channels):
+        """Transforms a dict of channels to CommandBindings"""
+        for channel, types in channels.items():
             if "pitch" in types:
                 command = types["pitch"]
                 key = CommandKey(channel, "pitchwheel", None)
