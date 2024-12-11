@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import click
+import yaml
 from mido import get_input_names, open_input
 
 from midi2cmd.midi_reader import CommandBindings, process_message
@@ -56,10 +57,11 @@ def cli(ctx, config_path, port):
     ctx.ensure_object(dict)
 
     cfg_yaml = load_config_yaml(config_path)
+    cfg = yaml.safe_load(cfg_yaml)
 
     # Preserve parameters.
     ctx.obj["config"] = cfg_yaml
-    ctx.obj["port"] = port
+    ctx.obj["port"] = port or cfg.get("port")
 
 
 @cli.command()
