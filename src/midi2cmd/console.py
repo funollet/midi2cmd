@@ -22,7 +22,7 @@ def validate_midi_port(port):
         )
 
 
-def load_config_yaml(fname: str) -> str:
+def load_config_yaml(fname: str) -> dict[str, str]:
     """Return the contents of the config file."""
     cfg_yaml = ""
     try:
@@ -57,7 +57,7 @@ def dump(
 ):
     """Print MIDI messages as they are received."""
     cfg = load_config_yaml(config_path)
-    port = port or cfg.get("port")
+    port = port or cfg.get("port", "")
 
     validate_midi_port(port)
 
@@ -78,7 +78,7 @@ def run(
     """Run the MIDI command processor."""
     cfg = load_config_yaml(config_path)
     channels = cfg.get("channels")
-    port = port or cfg.get("port")
+    port = port or cfg.get("port", "")
 
     validate_midi_port(port)
 
