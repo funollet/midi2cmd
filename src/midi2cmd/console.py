@@ -37,7 +37,7 @@ def load_config_yaml(fname: str) -> str:
 app = typer.Typer()
 
 
-@app.command()
+@app.command("list")
 def list_ports():
     """List available MIDI input ports."""
     available_ports = get_input_names()

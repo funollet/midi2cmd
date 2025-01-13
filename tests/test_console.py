@@ -1,10 +1,10 @@
 from unittest.mock import mock_open, patch
 
-import click
-from click.testing import CliRunner
+import typer
 from pytest import raises
+from typer.testing import CliRunner
 
-from midi2cmd.console import cli, load_config_yaml, validate_midi_port
+from midi2cmd.console import app, load_config_yaml, validate_midi_port
 
 
 def test_load_config_yaml_success():
@@ -14,7 +14,7 @@ def test_load_config_yaml_success():
 
 
 def test_load_config_yaml_file_not_found():
-    with raises(click.BadParameter, match="Can't read file non_existent_file."):
+    with raises(typer.BadParameter, match="Can't read file non_existent_file."):
         load_config_yaml("non_existent_file")
 
 
@@ -26,27 +26,27 @@ def test_validate_midi_port_valid():
 
 
 def test_validate_midi_port_invalid():
-    with raises(click.BadParameter):
+    with raises(typer.BadParameter):
         with patch("midi2cmd.console.open_input", side_effect=OSError):
             validate_midi_port("InvalidPort")
 
 
 def test_validate_midi_port_none():
-    with raises(click.BadParameter):
+    with raises(typer.BadParameter):
         validate_midi_port(None)
 
 
 def test_cli_invalid_port():
     runner = CliRunner()
     with patch("midi2cmd.console.get_input_names", return_value=["ValidPort"]):
-        result = runner.invoke(cli, ["--port", "InvalidPort", "run"])
+        result = runner.invoke(app, ["dump", "--port", "InvalidPort"])
         assert result.exit_code != 0
-        assert "Port 'InvalidPort' is not available." in result.output
+        assert "Invalid value: Port 'InvalidPort' is not available." in result.stdout
 
 
 def test_cli_help_option():
     runner = CliRunner()
-    result = runner.invoke(cli, ["--help"])
+    result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "Usage:" in result.output
 
@@ -54,7 +54,7 @@ def test_cli_help_option():
 def test_cli_list_ports():
     runner = CliRunner()
     with patch("midi2cmd.console.get_input_names", return_value=["Port1", "Port2"]):
-        result = runner.invoke(cli, ["list"])
+        result = runner.invoke(app, ["list"])
         assert result.exit_code == 0
         assert "Available MIDI input ports:" in result.output
         assert " Port1" in result.output
