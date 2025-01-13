@@ -39,7 +39,16 @@ def test_validate_midi_port_none():
 def test_cli_invalid_port():
     runner = CliRunner()
     with patch("midi2cmd.console.get_input_names", return_value=["ValidPort"]):
-        result = runner.invoke(app, ["dump", "--port", "InvalidPort"])
+        result = runner.invoke(
+            app,
+            [
+                "dump",
+                "--port",
+                "InvalidPort",
+                "--config",
+                "tests/fixtures/example.config.yaml",
+            ],
+        )
         assert result.exit_code != 0
         assert "Invalid value: Port 'InvalidPort' is not available." in result.stdout
 
