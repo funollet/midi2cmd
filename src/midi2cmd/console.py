@@ -3,6 +3,7 @@ from pathlib import Path
 
 import typer
 from mido import get_input_names, open_input
+from platformdirs import user_config_dir
 
 from midi2cmd.midi_reader import CommandBindings, process_message
 
@@ -25,7 +26,7 @@ def validate_midi_port(port):
 def load_config_toml(fname: str) -> dict[str, str]:
     """Return the contents of a toml config file."""
     try:
-        with Path(fname).expanduser().open("rb") as file:
+        with Path(fname).open("rb") as file:
             return tomllib.load(file)
     except FileNotFoundError:
         raise typer.BadParameter(f"Can't read file {fname}.")
@@ -43,10 +44,14 @@ def list_ports():
         typer.echo(f"    {port}")
 
 
+def default_config_path():
+    return Path(user_config_dir("midi2cmd")) / "config.toml"
+
+
 @app.command()
 def dump(
     config_path: str = typer.Option(
-        "~/.config/midi2cmd/config.toml", "--config", "-c", help="Configuration file."
+        default_config_path(), "--config", "-c", help="Configuration file."
     ),
     port: str = typer.Option(
         None, "--port", "-p", help="Name of the MIDI input port to use."
@@ -66,7 +71,7 @@ def dump(
 @app.command()
 def run(
     config_path: str = typer.Option(
-        "~/.config/midi2cmd/config.toml", "--config", "-c", help="Configuration file."
+        default_config_path(), "--config", "-c", help="Configuration file."
     ),
     port: str = typer.Option(
         None, "--port", "-p", help="Name of the MIDI input port to use."
