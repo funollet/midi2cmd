@@ -1,3 +1,5 @@
+import tomllib
+
 import pytest
 
 from midi2cmd.midi_reader import CommandBindings, CommandKey
@@ -5,39 +7,37 @@ from midi2cmd.midi_reader import CommandBindings, CommandKey
 
 @pytest.fixture
 def cmds():
-    """Fixture to parse command keys from YAML."""
-    channels = {
-        10: {
-            "control": {
-                9: "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * " "512))",
-                18: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h",
-            },
-            "pitch": "echo $MIDI_VALUE",
-        }
-    }
+    """Fixture to parse command keys from TOML."""
+    txt = """
+        [channels.10]
+        pitch = "echo $MIDI_VALUE"
+        control.9 = "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"  # control volume
+        control.18 = "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"            # raise hand in Meet
+    """
+    cfg = tomllib.loads(txt)
     c = CommandBindings()
-    c.load(channels)
+    c.load(cfg["channels"])
     return c
 
 
-def test_yaml_reads_keys(cmds):
-    assert CommandKey(10, "pitchwheel", None) in cmds
-    assert CommandKey(10, "control_change", 9) in cmds
-    assert CommandKey(10, "control_change", 18) in cmds
+def test_config_reads_keys(cmds):
+    assert CommandKey("10", "pitchwheel", None) in cmds
+    assert CommandKey("10", "control_change", "9") in cmds
+    assert CommandKey("10", "control_change", "18") in cmds
 
 
-def test_yaml_no_extra_keys(cmds):
+def test_config_no_extra_keys(cmds):
     assert len(cmds) == 3
 
 
-def test_yaml_reads_commands(cmds):
-    assert cmds[CommandKey(10, "pitchwheel", None)] == "echo $MIDI_VALUE"
+def test_config_reads_commands(cmds):
+    assert cmds[CommandKey("10", "pitchwheel", None)] == "echo $MIDI_VALUE"
     assert (
-        cmds[CommandKey(10, "control_change", 9)]
+        cmds[CommandKey("10", "control_change", "9")]
         == "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
     )
     assert (
-        cmds[CommandKey(10, "control_change", 18)]
+        cmds[CommandKey("10", "control_change", "18")]
         == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
     )
 

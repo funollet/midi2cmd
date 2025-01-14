@@ -1,8 +1,9 @@
+import tomllib
 from pathlib import Path
 
 import typer
-import yaml
 from mido import get_input_names, open_input
+from platformdirs import user_config_dir
 
 from midi2cmd.midi_reader import CommandBindings, process_message
 
@@ -22,16 +23,13 @@ def validate_midi_port(port):
         )
 
 
-def load_config_yaml(fname: str) -> dict[str, str]:
-    """Return the contents of the config file."""
-    cfg_yaml = ""
+def load_config_toml(fname: str) -> dict[str, str]:
+    """Return the contents of a toml config file."""
     try:
-        with Path(fname).expanduser().open("r") as file:
-            cfg_yaml = file.read()
+        with Path(fname).open("rb") as file:
+            return tomllib.load(file)
     except FileNotFoundError:
         raise typer.BadParameter(f"Can't read file {fname}.")
-
-    return yaml.safe_load(cfg_yaml)
 
 
 app = typer.Typer()
@@ -46,17 +44,21 @@ def list_ports():
         typer.echo(f"    {port}")
 
 
+def default_config_path():
+    return Path(user_config_dir("midi2cmd")) / "config.toml"
+
+
 @app.command()
 def dump(
     config_path: str = typer.Option(
-        "~/.config/midi2cmd/config.yaml", "--config", "-c", help="Configuration file."
+        default_config_path(), "--config", "-c", help="Configuration file."
     ),
     port: str = typer.Option(
         None, "--port", "-p", help="Name of the MIDI input port to use."
     ),
 ):
     """Print MIDI messages as they are received."""
-    cfg = load_config_yaml(config_path)
+    cfg = load_config_toml(config_path)
     port = port or cfg.get("port", "")
 
     validate_midi_port(port)
@@ -69,14 +71,14 @@ def dump(
 @app.command()
 def run(
     config_path: str = typer.Option(
-        "~/.config/midi2cmd/config.yaml", "--config", "-c", help="Configuration file."
+        default_config_path(), "--config", "-c", help="Configuration file."
     ),
     port: str = typer.Option(
         None, "--port", "-p", help="Name of the MIDI input port to use."
     ),
 ):
     """Run the MIDI command processor."""
-    cfg = load_config_yaml(config_path)
+    cfg = load_config_toml(config_path)
     channels = cfg.get("channels")
     port = port or cfg.get("port", "")
 
