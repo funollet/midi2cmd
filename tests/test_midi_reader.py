@@ -7,10 +7,10 @@ from midi2cmd.midi_reader import CommandBindings, CommandKey
 def cmds():
     """Fixture to parse command keys from YAML."""
     channels = {
-        10: {
+        "10": {
             "control": {
-                9: "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * " "512))",
-                18: "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h",
+                "9": "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * " "512))",
+                "18": "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h",
             },
             "pitch": "echo $MIDI_VALUE",
         }
@@ -21,9 +21,9 @@ def cmds():
 
 
 def test_yaml_reads_keys(cmds):
-    assert CommandKey(10, "pitchwheel", None) in cmds
-    assert CommandKey(10, "control_change", 9) in cmds
-    assert CommandKey(10, "control_change", 18) in cmds
+    assert CommandKey("10", "pitchwheel", None) in cmds
+    assert CommandKey("10", "control_change", "9") in cmds
+    assert CommandKey("10", "control_change", "18") in cmds
 
 
 def test_yaml_no_extra_keys(cmds):
@@ -31,13 +31,13 @@ def test_yaml_no_extra_keys(cmds):
 
 
 def test_yaml_reads_commands(cmds):
-    assert cmds[CommandKey(10, "pitchwheel", None)] == "echo $MIDI_VALUE"
+    assert cmds[CommandKey("10", "pitchwheel", None)] == "echo $MIDI_VALUE"
     assert (
-        cmds[CommandKey(10, "control_change", 9)]
+        cmds[CommandKey("10", "control_change", "9")]
         == "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
     )
     assert (
-        cmds[CommandKey(10, "control_change", 18)]
+        cmds[CommandKey("10", "control_change", "18")]
         == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
     )
 
