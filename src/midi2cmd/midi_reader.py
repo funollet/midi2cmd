@@ -28,7 +28,7 @@ class CommandBindings(dict):
 
     def for_message(self, msg):
         """Returns the command associated to a given message, or None"""
-        key = CommandKey(str(msg.channel), msg.type, getattr(msg, "control", None))
+        key = CommandKey(msg.channel, msg.type, getattr(msg, "control", None))
         return self.get(key)
 
 
