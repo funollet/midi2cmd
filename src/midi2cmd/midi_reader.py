@@ -19,7 +19,7 @@ class CommandBindings(dict):
         for channel, types in channels.items():
             if "pitch" in types:
                 command = types["pitch"]
-                key = CommandKey(channel, "pitchwheel", None)
+                key = CommandKey(channel, "pitchwheel", "")
                 self.update({key: command})
             if "control" in types:
                 for control, command in types["control"].items():
@@ -27,8 +27,8 @@ class CommandBindings(dict):
                     self.update({key: command})
 
     def for_message(self, msg):
-        """Returns the command associated to a given message, or None"""
-        key = CommandKey(msg.channel, msg.type, getattr(msg, "control", None))
+        """Returns the command associated to a given message, or ''"""
+        key = CommandKey(str(msg.channel), msg.type, str(getattr(msg, "control", "")))
         return self.get(key)
 
 

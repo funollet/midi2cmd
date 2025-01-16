@@ -21,7 +21,7 @@ def cmds():
 
 
 def test_config_reads_keys(cmds):
-    assert CommandKey("10", "pitchwheel", None) in cmds
+    assert CommandKey("10", "pitchwheel", "") in cmds
     assert CommandKey("10", "control_change", "9") in cmds
     assert CommandKey("10", "control_change", "18") in cmds
 
@@ -31,7 +31,7 @@ def test_config_no_extra_keys(cmds):
 
 
 def test_config_reads_commands(cmds):
-    assert cmds[CommandKey("10", "pitchwheel", None)] == "echo $MIDI_VALUE"
+    assert cmds[CommandKey("10", "pitchwheel", "")] == "echo $MIDI_VALUE"
     assert (
         cmds[CommandKey("10", "control_change", "9")]
         == "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
