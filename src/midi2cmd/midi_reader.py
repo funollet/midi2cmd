@@ -27,16 +27,29 @@ class CommandBindings(dict):
         super().__init__(*args)
 
     def load(self, channels):
-        """Transforms a dict of channels to CommandBindings"""
+        """Transforms a dict of channels to CommandBindings.
+
+        Example of `channels`:
+
+            { '10': {
+                'pitchwheel': 'echo pitch [$MIDI_VALUE]',
+                'control_change': {
+                    '9': 'echo control 9 [$MIDI_VALUE]',
+                    '18': 'echo control 18 [$MIDI_VALUE]',
+                    '26': 'echo control 26 [$MIDI_VALUE]',
+                    }
+                }
+            }
+        """
         for channel, types in channels.items():
-            if "pitch" in types:
-                command = types["pitch"]
+            if "pitchwheel" in types:
+                command = types["pitchwheel"]
                 key = MessageKey(int(channel), "pitchwheel")
-                self.update({key: command})
-            if "control" in types:
-                for control, command in types["control"].items():
+                self[key] = command
+            if "control_change" in types:
+                for control, command in types["control_change"].items():
                     key = MessageKey(int(channel), "control_change", int(control))
-                    self.update({key: command})
+                    self[key] = command
 
 
 def get_value(msg):
