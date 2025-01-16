@@ -1,6 +1,7 @@
 import tomllib
 
 import pytest
+from mido import Message
 from pytest import raises
 
 from midi2cmd.midi_reader import CommandBindings, MessageKey
@@ -68,3 +69,28 @@ def test_dict_of_messagekey():
     assert d[MessageKey(10, "pitchwheel")] == "b"
     with raises(KeyError):
         d[MessageKey(99, "control_change", 0)]
+
+
+def test_new_message_key_pitchwheel():
+    msg = Message(channel=1, type="pitchwheel")
+    key = MessageKey.new(msg)
+
+    assert key.channel == 1
+    assert key.type == "pitchwheel"
+    assert key.control == 0
+
+
+def test_new_message_key_control_change():
+    msg = Message(channel=1, type="control_change", control=10)
+    key = MessageKey.new(msg)
+
+    assert key.channel == 1
+    assert key.type == "control_change"
+    assert key.control == 10
+
+
+def test_new_message_key_invalid_type():
+    msg = Message(channel=1, type="note_on")
+
+    with pytest.raises(Exception):
+        _ = MessageKey.new(msg)

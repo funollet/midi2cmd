@@ -2,6 +2,8 @@ import os
 import subprocess
 from dataclasses import dataclass
 
+from mido import Message
+
 
 @dataclass(unsafe_hash=True)
 class MessageKey:
@@ -9,13 +11,18 @@ class MessageKey:
     type: str
     control: int = 0
 
+    @staticmethod
+    def new(msg: Message):
+        match msg.type:
+            case "pitchwheel":
+                return MessageKey(msg.channel, msg.type)
+            case "control_change":
+                return MessageKey(msg.channel, msg.type, msg.control)
+            case _:
+                raise Exception(f"message type {msg.type} not implemented")
+
 
 class CommandBindings(dict):
-    # Usage:
-    #
-    # c = CommandBindings()
-    # c[CommandKey(channel=10, type="control_change", control=18)] = "echo foo"
-
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -31,23 +38,21 @@ class CommandBindings(dict):
                     key = MessageKey(int(channel), "control_change", int(control))
                     self.update({key: command})
 
-    def for_message(self, msg):
-        """Returns the command associated to a given message, or ''"""
-        key = MessageKey(str(msg.channel), msg.type, str(getattr(msg, "control", "")))
-        return self.get(key)
+
+def get_value(msg):
+    match msg.type:
+        case "pitchwheel":
+            return msg.pitch
+        case "control_change":
+            return msg.value
+        case _:
+            raise Exception(f"message type {msg.type} not implemented")
 
 
-def get_value(message):
-    if message.type == "pitchwheel":
-        return message.pitch
-    if message.type == "control_change":
-        return message.value
-
-
-def process_message(message, cmd_mappings: CommandBindings):
-    value = get_value(message)
-    cmd = cmd_mappings.for_message(message)
-    env = os.environ.copy()
-    env["MIDI_VALUE"] = str(value)
+def process_message(message: Message, cmd_mappings: CommandBindings):
+    key = MessageKey.new(message)
+    cmd = cmd_mappings.get(key, "")
     if cmd:
+        env = os.environ.copy()
+        env["MIDI_VALUE"] = str(get_value(message))
         subprocess.Popen(cmd, shell=True, env=env)
