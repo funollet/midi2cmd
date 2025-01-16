@@ -43,12 +43,16 @@ class CommandBindings(dict):
         """
         for channel, types in channels.items():
             if "pitchwheel" in types:
+                key = MessageKey(channel=int(channel), type="pitchwheel")
                 command = types["pitchwheel"]
-                key = MessageKey(int(channel), "pitchwheel")
                 self[key] = command
             if "control_change" in types:
                 for control, command in types["control_change"].items():
-                    key = MessageKey(int(channel), "control_change", int(control))
+                    key = MessageKey(
+                        channel=int(channel),
+                        type="control_change",
+                        control=int(control),
+                    )
                     self[key] = command
 
 
