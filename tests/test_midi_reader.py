@@ -71,7 +71,17 @@ def test_dict_of_messagekey():
         d[MessageKey(99, "control_change", 0)]
 
 
-def test_new_message_key_pitchwheel():
+def test_messagekey_validation():
+    p = MessageKey(channel=10, type="pitchwheel")
+    pp = MessageKey(channel="10", type="pitchwheel")
+    assert p == pp
+
+    c = MessageKey(channel=10, type="control_change", control=99)
+    cc = MessageKey(channel=10, type="pitchwheel", control="99")
+    assert c.control == cc.control
+
+
+def test_messagekey_new_pitchwheel():
     msg = Message(channel=1, type="pitchwheel")
     key = MessageKey.new(msg)
 
@@ -80,7 +90,7 @@ def test_new_message_key_pitchwheel():
     assert key.control == 0
 
 
-def test_new_message_key_control_change():
+def test_messagekey_new_control_change():
     msg = Message(channel=1, type="control_change", control=10)
     key = MessageKey.new(msg)
 
@@ -89,7 +99,7 @@ def test_new_message_key_control_change():
     assert key.control == 10
 
 
-def test_new_message_key_invalid_type():
+def test_messagekey_new_invalid_type():
     msg = Message(channel=1, type="note_on")
 
     with pytest.raises(Exception):

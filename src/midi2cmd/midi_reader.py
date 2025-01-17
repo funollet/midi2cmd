@@ -11,6 +11,16 @@ class MessageKey:
     type: str
     control: int = 0
 
+    def __setattr__(self, name: str, value) -> None:
+        # Data validation: cast channel and control to integers.
+        match name:
+            case "channel":
+                super().__setattr__(name, int(value))
+            case "control":
+                super().__setattr__(name, int(value))
+            case _:
+                super().__setattr__(name, value)
+
     @staticmethod
     def new(msg: Message):
         match msg.type:
@@ -43,16 +53,12 @@ class CommandBindings(dict):
         """
         for channel, types in channels.items():
             if "pitchwheel" in types:
-                key = MessageKey(channel=int(channel), type="pitchwheel")
+                key = MessageKey(channel, "pitchwheel")
                 command = types["pitchwheel"]
                 self[key] = command
             if "control_change" in types:
                 for control, command in types["control_change"].items():
-                    key = MessageKey(
-                        channel=int(channel),
-                        type="control_change",
-                        control=int(control),
-                    )
+                    key = MessageKey(channel, "control_change", control)
                     self[key] = command
 
 
