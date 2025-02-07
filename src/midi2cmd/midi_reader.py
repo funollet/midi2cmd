@@ -1,48 +1,66 @@
-import os
-import subprocess
-from collections import namedtuple
+from dataclasses import InitVar, dataclass
 
-CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
+from mido import Message
+
+from midi2cmd.utils import dict_to_tuples
+
+
+@dataclass(unsafe_hash=True)
+class MessageKey:
+    channel: int = 0
+    type: str = ""
+    control: int = 0
+    # Init-only variable. Can receive a mido.Message to initialize the object.
+    mido_message: InitVar[Message | None] = None
+
+    def __post_init__(self, mido_message):
+        if mido_message is not None:
+            self.channel = mido_message.channel
+            self.type = mido_message.type
+            if hasattr(mido_message, "control"):
+                self.control = mido_message.control
+
+    def __setattr__(self, name: str, value) -> None:
+        # Data validation: cast channel and control to integers.
+        match name:
+            case "channel":
+                super().__setattr__(name, int(value))
+            case "control":
+                super().__setattr__(name, int(value))
+            case _:
+                super().__setattr__(name, value)
 
 
 class CommandBindings(dict):
-    # Usage:
-    #
-    # c = CommandBindings()
-    # c[CommandKey(channel=10, type="control_change", control=18)] = "echo foo"
+    def __init__(self, channels):
+        """Transforms a dict of channels to CommandBindings.
 
-    def __init__(self, *args):
-        super().__init__(*args)
+        Example of `channels`:
 
-    def load(self, channels):
-        """Transforms a dict of channels to CommandBindings"""
-        for channel, types in channels.items():
-            if "pitch" in types:
-                command = types["pitch"]
-                key = CommandKey(channel, "pitchwheel", "")
-                self.update({key: command})
-            if "control" in types:
-                for control, command in types["control"].items():
-                    key = CommandKey(channel, "control_change", control)
-                    self.update({key: command})
+            { '10': {
+                'pitchwheel': 'echo pitch [$MIDI_VALUE]',
+                'control_change': {
+                    '9': 'echo control 9 [$MIDI_VALUE]',
+                    '18': 'echo control 18 [$MIDI_VALUE]',
+                    '26': 'echo control 26 [$MIDI_VALUE]',
+                    }
+                }
+            }
+        """
+        flat = dict_to_tuples(channels)
+        for pairs in flat:
+            args, cmd = pairs[0], pairs[-1]
+            self[MessageKey(*args)] = cmd
 
-    def for_message(self, msg):
-        """Returns the command associated to a given message, or ''"""
-        key = CommandKey(str(msg.channel), msg.type, str(getattr(msg, "control", "")))
-        return self.get(key)
-
-
-def get_value(message):
-    if message.type == "pitchwheel":
-        return message.pitch
-    if message.type == "control_change":
-        return message.value
+    def match(self, message: Message) -> str:
+        """Return the command matching `message` or an empty string."""
+        return self.get(MessageKey(mido_message=message), "")
 
 
-def process_message(message, cmd_mappings: CommandBindings):
-    value = get_value(message)
-    cmd = cmd_mappings.for_message(message)
-    env = os.environ.copy()
-    env["MIDI_VALUE"] = str(value)
-    if cmd:
-        subprocess.Popen(cmd, shell=True, env=env)
+def get_value(msg: Message) -> int:
+    if hasattr(msg, "value"):
+        return msg.value
+    elif hasattr(msg, "pitch"):
+        return msg.pitch
+    else:
+        return 0
