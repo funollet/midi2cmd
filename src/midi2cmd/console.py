@@ -85,8 +85,7 @@ def run_cli(
 
     validate_midi_port(port)
 
-    map_msg_cmd = CommandBindings()
-    map_msg_cmd.load(channels)
+    map_msg_cmd = CommandBindings(channels)
 
     with open_input(port) as inport:
         for message in inport:

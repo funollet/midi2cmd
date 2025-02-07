@@ -17,9 +17,7 @@ def cmds():
         control_change.18 = "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"            # raise hand in Meet
     """
     cfg = tomllib.loads(txt)
-    c = CommandBindings()
-    c.load(cfg["channels"])
-    return c
+    return CommandBindings(cfg["channels"])
 
 
 def test_config_reads_keys(cmds):
@@ -52,22 +50,6 @@ def test_commandbindings_match(cmds):
     )
     # Test a message type not implemented.
     assert cmds.match(Message("note_on")) == ""
-
-
-def test_commands_from_iterable():
-    c = CommandBindings()
-    c[MessageKey(10, "control_change", 18)] = (
-        "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
-    )
-    assert (
-        c[MessageKey(10, "control_change", 18)]
-        == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
-    )
-
-
-def test_commands_init():
-    c = CommandBindings([(MessageKey(10, "control_change", 18), "echo foo")])
-    assert c[MessageKey(10, "control_change", 18)] == "echo foo"
 
 
 def test_dict_of_messagekey():

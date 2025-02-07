@@ -2,6 +2,8 @@ from dataclasses import InitVar, dataclass
 
 from mido import Message
 
+from midi2cmd.utils import dict_to_tuples
+
 
 @dataclass(unsafe_hash=True)
 class MessageKey:
@@ -30,10 +32,7 @@ class MessageKey:
 
 
 class CommandBindings(dict):
-    def __init__(self, *args):
-        super().__init__(*args)
-
-    def load(self, channels):
+    def __init__(self, channels):
         """Transforms a dict of channels to CommandBindings.
 
         Example of `channels`:
@@ -48,15 +47,10 @@ class CommandBindings(dict):
                 }
             }
         """
-        for channel, types in channels.items():
-            if "pitchwheel" in types:
-                key = MessageKey(channel, "pitchwheel")
-                command = types["pitchwheel"]
-                self[key] = command
-            if "control_change" in types:
-                for control, command in types["control_change"].items():
-                    key = MessageKey(channel, "control_change", control)
-                    self[key] = command
+        flat = dict_to_tuples(channels)
+        for pairs in flat:
+            args, cmd = pairs[0], pairs[-1]
+            self[MessageKey(*args)] = cmd
 
     def match(self, message: Message) -> str:
         """Return the command matching `message` or an empty string."""
