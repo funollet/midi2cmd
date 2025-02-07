@@ -1,15 +1,29 @@
 import os
 import subprocess
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 
 from mido import Message
 
 
 @dataclass(unsafe_hash=True)
 class MessageKey:
-    channel: int
-    type: str
+    channel: int = 0
+    type: str = ""
     control: int = 0
+    # Init-only variable. Can receive a mido.Message to initialize the object.
+    mido_message: InitVar[Message | None] = None
+
+    def __post_init__(self, mido_message):
+        if mido_message is not None:
+            self.channel = mido_message.channel
+            self.type = mido_message.type
+            match self.type:
+                case "pitchwheel":
+                    self.control = 0
+                case "control_change":
+                    self.control = mido_message.control
+                case _:
+                    raise Exception(f"message type {mido_message.type} not implemented")
 
     def __setattr__(self, name: str, value) -> None:
         # Data validation: cast channel and control to integers.
@@ -20,16 +34,6 @@ class MessageKey:
                 super().__setattr__(name, int(value))
             case _:
                 super().__setattr__(name, value)
-
-    @staticmethod
-    def new(msg: Message):
-        match msg.type:
-            case "pitchwheel":
-                return MessageKey(msg.channel, msg.type)
-            case "control_change":
-                return MessageKey(msg.channel, msg.type, msg.control)
-            case _:
-                raise Exception(f"message type {msg.type} not implemented")
 
 
 class CommandBindings(dict):
@@ -73,7 +77,7 @@ def get_value(msg):
 
 
 def process_message(message: Message, cmd_mappings: CommandBindings):
-    key = MessageKey.new(message)
+    key = MessageKey(mido_message=message)
     cmd = cmd_mappings.get(key, "")
     if cmd:
         env = os.environ.copy()

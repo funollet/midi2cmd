@@ -83,7 +83,7 @@ def test_messagekey_validation():
 
 def test_messagekey_new_pitchwheel():
     msg = Message(channel=1, type="pitchwheel")
-    key = MessageKey.new(msg)
+    key = MessageKey(mido_message=msg)
 
     assert key.channel == 1
     assert key.type == "pitchwheel"
@@ -92,7 +92,7 @@ def test_messagekey_new_pitchwheel():
 
 def test_messagekey_new_control_change():
     msg = Message(channel=1, type="control_change", control=10)
-    key = MessageKey.new(msg)
+    key = MessageKey(mido_message=msg)
 
     assert key.channel == 1
     assert key.type == "control_change"
@@ -103,4 +103,4 @@ def test_messagekey_new_invalid_type():
     msg = Message(channel=1, type="note_on")
 
     with pytest.raises(Exception):
-        _ = MessageKey.new(msg)
+        _ = MessageKey(mido_message=msg)
