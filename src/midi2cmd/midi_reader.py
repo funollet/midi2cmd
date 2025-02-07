@@ -1,8 +1,8 @@
-import os
-import subprocess
 from dataclasses import InitVar, dataclass
 
 from mido import Message
+
+from midi2cmd.utils import run
 
 
 @dataclass(unsafe_hash=True)
@@ -77,9 +77,6 @@ def get_value(msg):
 
 
 def process_message(message: Message, cmd_mappings: CommandBindings):
-    key = MessageKey(mido_message=message)
-    cmd = cmd_mappings.get(key, "")
-    if cmd:
-        env = os.environ.copy()
-        env["MIDI_VALUE"] = str(get_value(message))
-        subprocess.Popen(cmd, shell=True, env=env)
+    cmd = cmd_mappings.get(MessageKey(mido_message=message), "")
+    env_vars = {"MIDI_VALUE": str(get_value(message))}
+    run(cmd, env_vars)
