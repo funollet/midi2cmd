@@ -2,8 +2,6 @@ from dataclasses import InitVar, dataclass
 
 from mido import Message
 
-from midi2cmd.utils import run
-
 
 @dataclass(unsafe_hash=True)
 class MessageKey:
@@ -17,13 +15,8 @@ class MessageKey:
         if mido_message is not None:
             self.channel = mido_message.channel
             self.type = mido_message.type
-            match self.type:
-                case "pitchwheel":
-                    self.control = 0
-                case "control_change":
-                    self.control = mido_message.control
-                case _:
-                    raise Exception(f"message type {mido_message.type} not implemented")
+            if hasattr(mido_message, "control"):
+                self.control = mido_message.control
 
     def __setattr__(self, name: str, value) -> None:
         # Data validation: cast channel and control to integers.
@@ -65,18 +58,15 @@ class CommandBindings(dict):
                     key = MessageKey(channel, "control_change", control)
                     self[key] = command
 
-
-def get_value(msg):
-    match msg.type:
-        case "pitchwheel":
-            return msg.pitch
-        case "control_change":
-            return msg.value
-        case _:
-            raise Exception(f"message type {msg.type} not implemented")
+    def match(self, message: Message) -> str:
+        """Return the command matching `message` or an empty string."""
+        return self.get(MessageKey(mido_message=message), "")
 
 
-def process_message(message: Message, cmd_mappings: CommandBindings):
-    cmd = cmd_mappings.get(MessageKey(mido_message=message), "")
-    env_vars = {"MIDI_VALUE": str(get_value(message))}
-    run(cmd, env_vars)
+def get_value(msg: Message) -> int:
+    if hasattr(msg, "value"):
+        return msg.value
+    elif hasattr(msg, "pitch"):
+        return msg.pitch
+    else:
+        return 0

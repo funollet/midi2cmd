@@ -44,6 +44,16 @@ def test_config_reads_commands(cmds):
     )
 
 
+def test_commandbindings_match(cmds):
+    assert cmds.match(Message("pitchwheel", channel=10)) == "echo $MIDI_VALUE"
+    assert (
+        cmds.match(Message("control_change", channel=10, control=18))
+        == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
+    )
+    # Test a message type not implemented.
+    assert cmds.match(Message("note_on")) == ""
+
+
 def test_commands_from_iterable():
     c = CommandBindings()
     c[MessageKey(10, "control_change", 18)] = (
@@ -99,8 +109,7 @@ def test_messagekey_new_control_change():
     assert key.control == 10
 
 
-def test_messagekey_new_invalid_type():
+def test_messagekey_type_unknown():
     msg = Message(channel=1, type="note_on")
-
-    with pytest.raises(Exception):
-        _ = MessageKey(mido_message=msg)
+    key = MessageKey(mido_message=msg)
+    assert key.control == 0

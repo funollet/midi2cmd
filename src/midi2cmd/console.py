@@ -5,7 +5,8 @@ import typer
 from mido import get_input_names, open_input
 from platformdirs import user_config_dir
 
-from midi2cmd.midi_reader import CommandBindings, process_message
+from midi2cmd.midi_reader import CommandBindings, get_value
+from midi2cmd.utils import run
 
 
 def validate_midi_port(port):
@@ -68,8 +69,8 @@ def dump(
             typer.echo(f"{message}")
 
 
-@app.command()
-def run(
+@app.command(name="run")
+def run_cli(
     config_path: str = typer.Option(
         default_config_path(), "--config", "-c", help="Configuration file."
     ),
@@ -84,12 +85,16 @@ def run(
 
     validate_midi_port(port)
 
-    cmd_bindings = CommandBindings()
-    cmd_bindings.load(channels)
+    map_msg_cmd = CommandBindings()
+    map_msg_cmd.load(channels)
 
     with open_input(port) as inport:
         for message in inport:
-            process_message(message, cmd_bindings)
+            cmd = map_msg_cmd.match(message)
+
+            if cmd:
+                env_vars = {"MIDI_VALUE": str(get_value(message))}
+                run(cmd, env_vars)
 
 
 if __name__ == "__main__":
