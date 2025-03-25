@@ -819,6 +819,7 @@ wheels = [
 
 [[package]]
 name = "midi2cmd"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
