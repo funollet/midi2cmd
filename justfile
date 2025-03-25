@@ -11,10 +11,12 @@ build:
   uv build
 
 publish:
+  export UV_PUBLISH_TOKEN=`op read --no-newline 'op://non-interactive/pypi.org_token/credential'` && \
   uv publish
 
 publish-to-testpypi:
-  uv publish --index testpypi --token ${UV_PUBLISH_TOKEN_TESTPYPI}
+  export UV_PUBLISH_TOKEN=`op read --no-newline 'op://non-interactive/test.pypi.org_token/credential'` && \
+  uv publish --index testpypi
 
 test-package:
   uv run --with midi2cmd --no-project -- \
