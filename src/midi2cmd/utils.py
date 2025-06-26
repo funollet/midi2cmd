@@ -11,7 +11,8 @@ def get_value(message):
 
 def runcmd(cmd, **envvars):
     """Runs cmd in a shell. Any key-value in envvars
-    is added to the shell environment."""
+    is added to the shell environment. Returns the command output."""
     env = os.environ.copy()
     env.update({str(k): str(v) for k, v in envvars.items()})
-    subprocess.Popen(cmd, shell=True, env=env)
+    result = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True)
+    return result.stdout
