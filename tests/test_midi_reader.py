@@ -133,3 +133,30 @@ def test_messagedict_multiple_messages():
     mc[msg2] = "cmd2"
     assert mc[msg1] == "cmd1"
     assert mc[msg2] == "cmd2"
+
+
+def test_messagedict_load():
+    channels = {
+        "10": {
+            "pitchwheel": "echo pitch",
+            "control_change": {"9": "echo control9", "18": "echo control18"},
+        },
+        "2": {"control_change": {"1": "echo c2-1"}},
+    }
+    mc = MessageDict()
+    mc.load(channels)
+    # Check pitchwheel
+    msg_pitch = mido.Message("pitchwheel", channel=10)
+    assert mc[msg_pitch] == "echo pitch"
+    # Check control_change 9
+    msg_c9 = mido.Message("control_change", channel=10, control=9)
+    assert mc[msg_c9] == "echo control9"
+    # Check control_change 18
+    msg_c18 = mido.Message("control_change", channel=10, control=18)
+    assert mc[msg_c18] == "echo control18"
+    # Check control_change 2-1
+    msg_c2_1 = mido.Message("control_change", channel=2, control=1)
+    assert mc[msg_c2_1] == "echo c2-1"
+    # Check missing
+    msg_missing = mido.Message("control_change", channel=3, control=1)
+    assert mc[msg_missing] == ""

@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+import mido
 from mido.frozen import freeze_message
 
 CommandKey = namedtuple("CommandKey", ["channel", "type", "control"])
@@ -70,5 +71,20 @@ class MessageDict(dict):
             message.pitch = 0
         else:
             message.value = 0
+
         frozen_msg = freeze_message(message)
         return self.get(frozen_msg, "")
+
+    def load(self, channels):
+        """Transforms a dict of channels to MessageDict."""
+        for channel, types in channels.items():
+            if "pitchwheel" in types:
+                command = types["pitchwheel"]
+                msg = mido.Message("pitchwheel", channel=int(channel))
+                self[msg] = command
+            if "control_change" in types:
+                for control, command in types["control_change"].items():
+                    msg = mido.Message(
+                        "control_change", channel=int(channel), control=int(control)
+                    )
+                    self[msg] = command
