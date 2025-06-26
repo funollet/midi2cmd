@@ -9,9 +9,9 @@ def get_value(message):
         return message.value
 
 
-def process_message(message, cmd: str):
-    value = get_value(message)
+def runcmd(cmd, **envvars):
+    """Runs cmd in a shell. Any key-value in envvars
+    is added to the shell environment."""
     env = os.environ.copy()
-    env["MIDI_VALUE"] = str(value)
-    if cmd:
-        subprocess.Popen(cmd, shell=True, env=env)
+    env.update({str(k): str(v) for k, v in envvars.items()})
+    subprocess.Popen(cmd, shell=True, env=env)
