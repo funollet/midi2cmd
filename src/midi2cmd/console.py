@@ -5,7 +5,8 @@ import typer
 from mido import get_input_names, open_input
 from platformdirs import user_config_dir
 
-from midi2cmd.midi_reader import CommandBindings, process_message
+from midi2cmd.midi_reader import CommandBindings
+from midi2cmd.utils import process_message
 
 
 def validate_midi_port(port):
@@ -89,7 +90,9 @@ def run(
 
     with open_input(port) as inport:
         for message in inport:
-            process_message(message, cmd_bindings)
+            cmd = cmd_bindings.for_message(message)
+            if cmd:
+                process_message(message, cmd)
 
 
 if __name__ == "__main__":
