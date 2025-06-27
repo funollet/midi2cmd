@@ -5,7 +5,7 @@ import typer
 from mido import get_input_names, open_input
 from platformdirs import user_config_dir
 
-from midi2cmd.midi_reader import CommandBindings
+from midi2cmd.midi_reader import MessageDict
 from midi2cmd.utils import get_value, runcmd
 
 
@@ -85,12 +85,12 @@ def run(
 
     validate_midi_port(port)
 
-    cmd_bindings = CommandBindings()
-    cmd_bindings.load(channels)
+    commands = MessageDict()
+    commands.load(channels)
 
     with open_input(port) as inport:
         for message in inport:
-            cmd = cmd_bindings.for_message(message)
+            cmd = commands[message]
             if cmd:
                 runcmd(cmd, MIDI_VALUE=get_value(message))
 
