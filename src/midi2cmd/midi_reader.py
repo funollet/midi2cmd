@@ -1,5 +1,5 @@
 import mido
-from mido.frozen import freeze_message
+from mido.frozen import freeze_message  # type: ignore[import-untyped]
 
 
 class MessageDict(dict):
