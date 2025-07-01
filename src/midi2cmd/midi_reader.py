@@ -35,16 +35,17 @@ class MessageDict(dict):
     def __getitem__(self, message):
         """Returns the command associated to a given message, or ''."""
         # Normalize the message before comparing
-        message.time = 0
-        if message.type == "pitchwheel":
-            message.pitch = 0
-        elif message.type == "control_change":
-            message.value = 0
+        msg = message.copy()
+        msg.time = 0
+        if msg.type == "pitchwheel":
+            msg.pitch = 0
+        elif msg.type == "control_change":
+            msg.value = 0
         # For unhandled types, just return ""
         else:
             return ""
 
-        frozen_msg = freeze_message(message)
+        frozen_msg = freeze_message(msg)
         return self.get(frozen_msg, "")
 
     def load(self, channels):
