@@ -1,11 +1,10 @@
 from pathlib import Path
-from typing import Any
 
 import typer
 from mido import get_input_names, open_input
 from platformdirs import user_config_dir
 
-from midi2cmd.midi_reader import MessageDict, parse_config_txt
+from midi2cmd.midi_reader import ConfigTxt
 from midi2cmd.utils import get_value, runcmd
 
 
@@ -24,11 +23,11 @@ def validate_midi_port(port):
         )
 
 
-def load_config_txt(fname: str) -> dict[str, Any]:
-    """Open a config file and parse its contents."""
+def load_config_txt(fname: str) -> ConfigTxt:
+    """Open a config file and arse its contents."""
     try:
         with Path(fname).open() as f:
-            return parse_config_txt(f)
+            return ConfigTxt.from_file(f)
     except FileNotFoundError:
         raise typer.BadParameter(f"Can't read file {fname}.")
 
@@ -60,7 +59,7 @@ def dump(
 ):
     """Print MIDI messages as they are received."""
     cfg = load_config_txt(config_path)
-    port = port or cfg.get("port", "")
+    port = port or cfg.port
 
     validate_midi_port(port)
 
@@ -80,17 +79,12 @@ def run(
 ):
     """Run the MIDI command processor."""
     cfg = load_config_txt(config_path)
-    channels = cfg.get("channels")
-    port = port or cfg.get("port", "")
-
+    port = port or cfg.port
     validate_midi_port(port)
-
-    commands = MessageDict()
-    commands.load(channels)
 
     with open_input(port) as inport:
         for message in inport:
-            cmd = commands[message]
+            cmd = cfg.commands[message]
             if cmd:
                 runcmd(cmd, MIDI_VALUE=get_value(message))
 

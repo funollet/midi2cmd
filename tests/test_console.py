@@ -4,13 +4,13 @@ import typer
 from pytest import raises
 from typer.testing import CliRunner
 
-from midi2cmd.console import app, load_config_txt, validate_midi_port
+from midi2cmd.console import ConfigTxt, app, load_config_txt, validate_midi_port
 
 
 def test_load_config_txt_success():
-    with patch("pathlib.Path.open", mock_open(read_data=b"")):
+    with patch("pathlib.Path.open", mock_open(read_data="")):
         result = load_config_txt("dummy_path")
-        assert result == {}
+        assert type(result) is ConfigTxt
 
 
 def test_load_config_txt_file_not_found():
