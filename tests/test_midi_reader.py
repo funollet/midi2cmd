@@ -1,6 +1,6 @@
 import mido
 
-from midi2cmd.console import load_config_txt
+from midi2cmd.console import parse_config_txt
 from midi2cmd.midi_reader import MessageDict
 
 
@@ -115,21 +115,21 @@ def test_messagedict_unhandled_message_type():
     assert mc[msg] == ""
 
 
-def test_load_config_txt(tmp_path):
+def test_parse_config_txt():
+    import io
+
     config_txt = """
-port: X-TOUCH MINI MIDI 1
-#
-# Just show the pich change value.
-pitchwheel channel=10: echo $MIDI_VALUE
-# Control volume.
-control_change channel=10 control=9: pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))
-# Raise hand in Meet.
-control_change channel=10 control=18: [ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h
-control_change channel=99 control=9: echo foo
-"""
-    config_file = tmp_path / "example.config.txt"
-    config_file.write_text(config_txt)
-    cfg = load_config_txt(str(config_file))
+        port: X-TOUCH MINI MIDI 1
+        #
+        # Just show the pich change value.
+        pitchwheel channel=10: echo $MIDI_VALUE
+        # Control volume.
+        control_change channel=10 control=9: pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))
+        # Raise hand in Meet.
+        control_change channel=10 control=18: [ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h
+        control_change channel=99 control=9: echo foo
+    """
+    cfg = parse_config_txt(io.StringIO(config_txt))
     assert cfg["port"] == "X-TOUCH MINI MIDI 1"
     channels = cfg["channels"]
     assert channels["10"]["pitchwheel"] == "echo $MIDI_VALUE"

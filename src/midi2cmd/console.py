@@ -1,10 +1,11 @@
 from pathlib import Path
+from typing import Any
 
 import typer
 from mido import get_input_names, open_input
 from platformdirs import user_config_dir
 
-from midi2cmd.midi_reader import MessageDict
+from midi2cmd.midi_reader import MessageDict, parse_config_txt
 from midi2cmd.utils import get_value, runcmd
 
 
@@ -23,39 +24,13 @@ def validate_midi_port(port):
         )
 
 
-def load_config_txt(fname: str) -> dict:
-    """Load a config file in the plain text format (see example.config.txt)."""
-    from typing import Any
-
-    config: dict[Any, Any] = {}
-    channels: dict[Any, Any] = {}
+def load_config_txt(fname: str) -> dict[str, Any]:
+    """Open a config file and parse its contents."""
     try:
         with Path(fname).open() as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                if line.startswith("port:"):
-                    config["port"] = line.split(":", 1)[1].strip()
-                elif line.startswith("pitchwheel "):
-                    # Format: pitchwheel channel=10: command
-                    message, cmd = line.split(":", 1)
-                    ch = message.split("=", 1)[1].strip()
-                    channels.setdefault(ch, {})["pitchwheel"] = cmd.strip()
-                elif line.startswith("control_change "):
-                    # Format: control_change channel=10 control=18: command
-                    message, cmd = line.split(":", 1)
-                    parts = message.split()
-                    ch = parts[1].split("=", 1)[1].strip()
-                    ctrl = parts[2].split("=", 1)[1].strip()
-                    channels.setdefault(ch, {}).setdefault("control_change", {})[
-                        ctrl
-                    ] = cmd.strip()
+            return parse_config_txt(f)
     except FileNotFoundError:
         raise typer.BadParameter(f"Can't read file {fname}.")
-    if channels:
-        config["channels"] = channels
-    return config
 
 
 app = typer.Typer()
