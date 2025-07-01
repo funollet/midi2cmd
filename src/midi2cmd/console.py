@@ -25,29 +25,34 @@ def validate_midi_port(port):
 
 def load_config_txt(fname: str) -> dict:
     """Load a config file in the plain text format (see example.config.txt)."""
-    config = {}
-    channels = {}
-    with open(fname) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            if line.startswith("port:"):
-                config["port"] = line.split(":", 1)[1].strip()
-            elif line.startswith("pitchwheel "):
-                # Format: pitchwheel channel=10: command
-                message, cmd = line.split(":", 1)
-                ch = message.split("=", 1)[1].strip()
-                channels.setdefault(ch, {})["pitchwheel"] = cmd.strip()
-            elif line.startswith("control_change "):
-                # Format: control_change channel=10 control=18: command
-                message, cmd = line.split(":", 1)
-                parts = message.split()
-                ch = parts[1].split("=", 1)[1].strip()
-                ctrl = parts[2].split("=", 1)[1].strip()
-                channels.setdefault(ch, {}).setdefault("control_change", {})[ctrl] = (
-                    cmd.strip()
-                )
+    from typing import Any
+
+    config: dict[Any, Any] = {}
+    channels: dict[Any, Any] = {}
+    try:
+        with Path(fname).open() as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if line.startswith("port:"):
+                    config["port"] = line.split(":", 1)[1].strip()
+                elif line.startswith("pitchwheel "):
+                    # Format: pitchwheel channel=10: command
+                    message, cmd = line.split(":", 1)
+                    ch = message.split("=", 1)[1].strip()
+                    channels.setdefault(ch, {})["pitchwheel"] = cmd.strip()
+                elif line.startswith("control_change "):
+                    # Format: control_change channel=10 control=18: command
+                    message, cmd = line.split(":", 1)
+                    parts = message.split()
+                    ch = parts[1].split("=", 1)[1].strip()
+                    ctrl = parts[2].split("=", 1)[1].strip()
+                    channels.setdefault(ch, {}).setdefault("control_change", {})[
+                        ctrl
+                    ] = cmd.strip()
+    except FileNotFoundError:
+        raise typer.BadParameter(f"Can't read file {fname}.")
     if channels:
         config["channels"] = channels
     return config
