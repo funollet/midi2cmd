@@ -5,7 +5,7 @@ import typer
 from mido import get_input_names, open_input
 from platformdirs import user_config_dir
 
-from midi2cmd.midi_reader import MessageDict, parse_config_txt
+from midi2cmd.midi_reader import parse_config_txt
 from midi2cmd.utils import get_value, runcmd
 
 
@@ -80,13 +80,9 @@ def run(
 ):
     """Run the MIDI command processor."""
     cfg = load_config_txt(config_path)
-    channels = cfg.get("channels")
-    port = port or cfg.get("port", "")
-
+    port = cfg["port"]
+    commands = cfg["channels"]
     validate_midi_port(port)
-
-    commands = MessageDict()
-    commands.load(channels)
 
     with open_input(port) as inport:
         for message in inport:

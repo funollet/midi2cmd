@@ -8,9 +8,9 @@ from midi2cmd.console import app, load_config_txt, validate_midi_port
 
 
 def test_load_config_txt_success():
-    with patch("pathlib.Path.open", mock_open(read_data=b"")):
+    with patch("pathlib.Path.open", mock_open(read_data="")):
         result = load_config_txt("dummy_path")
-        assert result == {}
+        assert result == {"port": "", "channels": {}}
 
 
 def test_load_config_txt_file_not_found():

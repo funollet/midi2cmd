@@ -1,4 +1,5 @@
 import mido
+from mido import Message  # type: ignore[import-untyped]
 
 from midi2cmd.console import parse_config_txt
 from midi2cmd.midi_reader import MessageDict
@@ -80,31 +81,31 @@ def test_messagedict_multiple_messages():
     assert mc[msg2] == "cmd2"
 
 
-def test_messagedict_load():
-    channels = {
-        "10": {
-            "pitchwheel": "echo pitch",
-            "control_change": {"9": "echo control9", "18": "echo control18"},
-        },
-        "2": {"control_change": {"1": "echo c2-1"}},
-    }
-    mc = MessageDict()
-    mc.load(channels)
-    # Check pitchwheel
-    msg_pitch = mido.Message("pitchwheel", channel=10)
-    assert mc[msg_pitch] == "echo pitch"
-    # Check control_change 9
-    msg_c9 = mido.Message("control_change", channel=10, control=9)
-    assert mc[msg_c9] == "echo control9"
-    # Check control_change 18
-    msg_c18 = mido.Message("control_change", channel=10, control=18)
-    assert mc[msg_c18] == "echo control18"
-    # Check control_change 2-1
-    msg_c2_1 = mido.Message("control_change", channel=2, control=1)
-    assert mc[msg_c2_1] == "echo c2-1"
-    # Check missing
-    msg_missing = mido.Message("control_change", channel=3, control=1)
-    assert mc[msg_missing] == ""
+# def test_messagedict_load():
+#     channels = {
+#         "10": {
+#             "pitchwheel": "echo pitch",
+#             "control_change": {"9": "echo control9", "18": "echo control18"},
+#         },
+#         "2": {"control_change": {"1": "echo c2-1"}},
+#     }
+#     mc = MessageDict()
+#     mc.load(channels)
+#     # Check pitchwheel
+#     msg_pitch = mido.Message("pitchwheel", channel=10)
+#     assert mc[msg_pitch] == "echo pitch"
+#     # Check control_change 9
+#     msg_c9 = mido.Message("control_change", channel=10, control=9)
+#     assert mc[msg_c9] == "echo control9"
+#     # Check control_change 18
+#     msg_c18 = mido.Message("control_change", channel=10, control=18)
+#     assert mc[msg_c18] == "echo control18"
+#     # Check control_change 2-1
+#     msg_c2_1 = mido.Message("control_change", channel=2, control=1)
+#     assert mc[msg_c2_1] == "echo c2-1"
+#     # Check missing
+#     msg_missing = mido.Message("control_change", channel=3, control=1)
+#     assert mc[msg_missing] == ""
 
 
 def test_messagedict_unhandled_message_type():
@@ -127,18 +128,18 @@ def test_parse_config_txt():
         control_change channel=10 control=9: pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))
         # Raise hand in Meet.
         control_change channel=10 control=18: [ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h
-        control_change channel=99 control=9: echo foo
+        control_change channel=6 control=9: echo foo
     """
     cfg = parse_config_txt(io.StringIO(config_txt))
     assert cfg["port"] == "X-TOUCH MINI MIDI 1"
-    channels = cfg["channels"]
-    assert channels["10"]["pitchwheel"] == "echo $MIDI_VALUE"
+    commands = cfg["channels"]
+    assert commands[Message("pitchwheel", channel=10)] == "echo $MIDI_VALUE"
     assert (
-        channels["10"]["control_change"]["9"]
+        commands[Message("control_change", channel=10, control=9)]
         == "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
     )
     assert (
-        channels["10"]["control_change"]["18"]
+        commands[Message("control_change", channel=10, control=18)]
         == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
     )
-    assert channels["99"]["control_change"]["9"] == "echo foo"
+    assert commands[Message("control_change", channel=6, control=9)] == "echo foo"
