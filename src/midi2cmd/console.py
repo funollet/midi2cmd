@@ -1,4 +1,3 @@
-import tomllib
 from pathlib import Path
 
 import typer
@@ -22,15 +21,6 @@ def validate_midi_port(port):
         raise typer.BadParameter(
             f"Port '{port}' is not available. Hint: use `midi2cmd list`."
         )
-
-
-def load_config_toml(fname: str) -> dict[str, str]:
-    """Return the contents of a toml config file."""
-    try:
-        with Path(fname).open("rb") as file:
-            return tomllib.load(file)
-    except FileNotFoundError:
-        raise typer.BadParameter(f"Can't read file {fname}.")
 
 
 def load_config_txt(fname: str) -> dict:
