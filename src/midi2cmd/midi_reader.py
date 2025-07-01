@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import IO, Any
 
 import mido
@@ -52,21 +53,28 @@ class MessageDict(dict):
         return self.get(self._normalize(message), "")
 
 
-def parse_config_txt(txt: IO[str]) -> dict[str, Any]:
-    """Parse a config txt file object in the plain text format (see example.config.txt).
-    Returns a tuple with the port and a MessageDict of commands.
-    """
-    port = ""
-    commands = MessageDict()
+@dataclass
+class ConfigTxt:
+    """A class to hold the configuration parsed from a config.txt file."""
 
-    for line in txt:  # Iterate directly over the file object
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("port:"):
-            port = line.split(":", 1)[1].strip()
-        else:
-            message, cmd = line.split(":", 1)
-            commands[mido.Message.from_str(message)] = cmd.strip()
+    port: str = ""
+    commands: MessageDict = field(default_factory=MessageDict)
 
-    return {"port": port, "channels": commands}
+    def read(self, txt: IO[str]) -> None:
+        """Read the configuration from a text file object."""
+        for line in txt:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if line.startswith("port:"):
+                self.port = line.split(":", 1)[1].strip()
+            else:
+                message, cmd = line.split(":", 1)
+                self.commands[mido.Message.from_str(message)] = cmd.strip()
+
+    @classmethod
+    def from_file(cls, txt: IO[str]) -> "ConfigTxt":
+        """Create a ConfigTxt instance from a text file object."""
+        cfg = cls()
+        cfg.read(txt)
+        return cfg

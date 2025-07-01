@@ -1,8 +1,7 @@
 import mido
 from mido import Message  # type: ignore[import-untyped]
 
-from midi2cmd.console import parse_config_txt
-from midi2cmd.midi_reader import MessageDict
+from midi2cmd.midi_reader import ConfigTxt, MessageDict
 
 
 def test_messagedict_control_change_set_and_get():
@@ -130,16 +129,16 @@ def test_parse_config_txt():
         control_change channel=10 control=18: [ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h
         control_change channel=6 control=9: echo foo
     """
-    cfg = parse_config_txt(io.StringIO(config_txt))
-    assert cfg["port"] == "X-TOUCH MINI MIDI 1"
-    commands = cfg["channels"]
-    assert commands[Message("pitchwheel", channel=10)] == "echo $MIDI_VALUE"
+    cfg = ConfigTxt.from_file(io.StringIO(config_txt))
+    assert cfg.port == "X-TOUCH MINI MIDI 1"
+    assert len(cfg.commands) == 4
+    assert cfg.commands[Message("pitchwheel", channel=10)] == "echo $MIDI_VALUE"
     assert (
-        commands[Message("control_change", channel=10, control=9)]
+        cfg.commands[Message("control_change", channel=10, control=9)]
         == "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
     )
     assert (
-        commands[Message("control_change", channel=10, control=18)]
+        cfg.commands[Message("control_change", channel=10, control=18)]
         == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
     )
-    assert commands[Message("control_change", channel=6, control=9)] == "echo foo"
+    assert cfg.commands[Message("control_change", channel=6, control=9)] == "echo foo"
