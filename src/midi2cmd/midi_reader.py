@@ -38,8 +38,11 @@ class MessageDict(dict):
         message.time = 0
         if message.type == "pitchwheel":
             message.pitch = 0
-        else:
+        elif message.type == "control_change":
             message.value = 0
+        # For unhandled types, just return ""
+        else:
+            return ""
 
         frozen_msg = freeze_message(message)
         return self.get(frozen_msg, "")
