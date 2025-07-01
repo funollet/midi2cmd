@@ -104,3 +104,11 @@ def test_messagedict_load():
     # Check missing
     msg_missing = mido.Message("control_change", channel=3, control=1)
     assert mc[msg_missing] == ""
+
+
+def test_messagedict_unhandled_message_type():
+    mc = MessageDict()
+    # program_change is not handled by MessageDict logic
+    msg = mido.Message("program_change", channel=10, program=10)
+    # Should not raise, should return ""
+    assert mc[msg] == ""
