@@ -1,3 +1,5 @@
+from typing import IO, Any
+
 import mido
 from mido.frozen import freeze_message  # type: ignore[import-untyped]
 
@@ -61,3 +63,32 @@ class MessageDict(dict):
                         "control_change", channel=int(channel), control=int(control)
                     )
                     self[msg] = command
+
+
+def parse_config_txt(txt: IO[str]) -> dict[str, Any]:
+    """Parse a config file object in the plain text format (see example.config.txt)."""
+    config: dict[str, Any] = {}
+    channels: dict[str, Any] = {}
+    for line in txt:  # Iterate directly over the file object
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("port:"):
+            config["port"] = line.split(":", 1)[1].strip()
+        elif line.startswith("pitchwheel "):
+            # Format: pitchwheel channel=10: command
+            message, cmd = line.split(":", 1)
+            ch = message.split("=", 1)[1].strip()
+            channels.setdefault(ch, {})["pitchwheel"] = cmd.strip()
+        elif line.startswith("control_change "):
+            # Format: control_change channel=10 control=18: command
+            message, cmd = line.split(":", 1)
+            parts = message.split()
+            ch = parts[1].split("=", 1)[1].strip()
+            ctrl = parts[2].split("=", 1)[1].strip()
+            channels.setdefault(ch, {}).setdefault("control_change", {})[ctrl] = (
+                cmd.strip()
+            )
+    if channels:
+        config["channels"] = channels
+    return config
