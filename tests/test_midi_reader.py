@@ -1,5 +1,6 @@
 import mido
 
+from midi2cmd.console import load_config_txt
 from midi2cmd.midi_reader import MessageDict
 
 
@@ -112,3 +113,32 @@ def test_messagedict_unhandled_message_type():
     msg = mido.Message("program_change", channel=10, program=10)
     # Should not raise, should return ""
     assert mc[msg] == ""
+
+
+def test_load_config_txt(tmp_path):
+    config_txt = """
+port: X-TOUCH MINI MIDI 1
+#
+# Just show the pich change value.
+pitchwheel channel=10: echo $MIDI_VALUE
+# Control volume.
+control_change channel=10 control=9: pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))
+# Raise hand in Meet.
+control_change channel=10 control=18: [ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h
+control_change channel=99 control=9: echo foo
+"""
+    config_file = tmp_path / "example.config.txt"
+    config_file.write_text(config_txt)
+    cfg = load_config_txt(str(config_file))
+    assert cfg["port"] == "X-TOUCH MINI MIDI 1"
+    channels = cfg["channels"]
+    assert channels["10"]["pitchwheel"] == "echo $MIDI_VALUE"
+    assert (
+        channels["10"]["control_change"]["9"]
+        == "pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))"
+    )
+    assert (
+        channels["10"]["control_change"]["18"]
+        == "[ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h"
+    )
+    assert channels["99"]["control_change"]["9"] == "echo foo"

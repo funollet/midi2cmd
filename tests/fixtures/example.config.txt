@@ -1,0 +1,8 @@
+port: X-TOUCH MINI MIDI 1
+#
+# Just show the pich change value.
+pitchwheel channel=10: echo $MIDI_VALUE
+# Control volume.
+control_change channel=10 control=9: pactl set-sink-volume @DEFAULT_SINK@ $((MIDI_VALUE * 512))
+# Raise hand in Meet.
+control_change channel=10 control=18: [ $MIDI_VALUE = 0 ] && xdotool key ctrl+shift+h
