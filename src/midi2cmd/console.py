@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import typer
 from mido import get_input_names, open_input
@@ -23,12 +24,11 @@ def validate_midi_port(port):
         )
 
 
-def load_config_txt(fname: str) -> dict:
+def load_config_txt(fname: str) -> dict[str, Any]:
     """Load a config file in the plain text format (see example.config.txt)."""
-    from typing import Any
 
-    config: dict[Any, Any] = {}
-    channels: dict[Any, Any] = {}
+    config: dict[str, Any] = {}
+    channels: dict[str, Any] = {}
     try:
         with Path(fname).open() as f:
             for line in f:
