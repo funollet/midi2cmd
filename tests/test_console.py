@@ -4,18 +4,18 @@ import typer
 from pytest import raises
 from typer.testing import CliRunner
 
-from midi2cmd.console import app, load_config_toml, validate_midi_port
+from midi2cmd.console import app, load_config_txt, validate_midi_port
 
 
-def test_load_config_toml_success():
+def test_load_config_txt_success():
     with patch("pathlib.Path.open", mock_open(read_data=b"")):
-        result = load_config_toml("dummy_path")
+        result = load_config_txt("dummy_path")
         assert result == {}
 
 
-def test_load_config_toml_file_not_found():
+def test_load_config_txt_file_not_found():
     with raises(typer.BadParameter, match="Can't read file non_existent_file."):
-        load_config_toml("non_existent_file")
+        load_config_txt("non_existent_file")
 
 
 def test_validate_midi_port_valid():
@@ -46,7 +46,7 @@ def test_cli_invalid_port():
                 "--port",
                 "InvalidPort",
                 "--config",
-                "tests/fixtures/example.config.toml",
+                "tests/fixtures/example.config.txt",
             ],
         )
         assert result.exit_code != 0
