@@ -1,3 +1,4 @@
+from functools import partial
 from pathlib import Path
 
 import typer
@@ -8,7 +9,7 @@ from midi2cmd.midi_reader import ConfigTxt
 from midi2cmd.utils import get_value, runcmd
 
 
-def validate_midi_port(port):
+def validate_midi_port(port: str | None):
     """Ensure a MIDI port can be opened."""
     if port is None:
         raise typer.BadParameter(
@@ -62,10 +63,7 @@ def dump(
     port = port or cfg.port
 
     validate_midi_port(port)
-
-    with open_input(port) as inport:
-        for message in inport:
-            typer.echo(f"{message}")
+    process_messages(port, handlers=[echo_handler])
 
 
 @app.command()
@@ -82,11 +80,25 @@ def run(
     port = port or cfg.port
     validate_midi_port(port)
 
+    cmd_handler = partial(msg_to_simple_cmd_mapper, cfg)
+    process_messages(port, handlers=[cmd_handler])
+
+
+def process_messages(port: str, handlers):
     with open_input(port) as inport:
         for message in inport:
-            cmd = cfg.commands[message]
-            if cmd:
-                runcmd(cmd, MIDI_VALUE=get_value(message))
+            for handler in handlers:
+                handler(message)
+
+
+def echo_handler(message):
+    typer.echo(f"{message}")
+
+
+def msg_to_simple_cmd_mapper(cfg: ConfigTxt, message):
+    cmd = cfg.commands[message]
+    if cmd:
+        runcmd(cmd, MIDI_VALUE=get_value(message))
 
 
 if __name__ == "__main__":
