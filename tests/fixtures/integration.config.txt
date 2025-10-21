@@ -1,0 +1,19 @@
+port: miditest
+#
+# Integration test config for virtual MIDI device
+# Maps each message to an echo command that outputs identifiable text
+#
+# Message 1: pitchwheel on channel 10
+pitchwheel channel=10: echo "PITCHWHEEL:$MIDI_VALUE"
+#
+# Message 2: control_change channel 10, control 9
+control_change channel=10 control=9: echo "CC_CONTROL_9:$MIDI_VALUE"
+#
+# Message 3: control_change channel 10, control 18
+control_change channel=10 control=18: echo "CC_CONTROL_18:$MIDI_VALUE"
+#
+# Message 4: control_change channel 10, control 26
+control_change channel=10 control=26: echo "CC_CONTROL_26:$MIDI_VALUE"
+#
+# Message 5: control_change channel 10, control 1
+control_change channel=10 control=1: echo "CC_CONTROL_1:$MIDI_VALUE"
