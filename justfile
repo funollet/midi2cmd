@@ -1,5 +1,12 @@
-test:
-  uv run pytest
+test: test-unit test-integration typecheck
+
+test-unit:
+  uv run pytest tests/ --ignore=tests/test_integration.py
+
+test-integration:
+  uv run pytest tests/test_integration.py
+
+typecheck:
   uv run mypy src/ tests/
 
 alias ai := aider
