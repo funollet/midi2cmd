@@ -14,4 +14,4 @@ Don't add yourself as cowriter on git commit messages.
 
 # Individual Preferences
 
-- @~/.claude/my-project-instructions.md
+- @~/.claude/shared-instructions.md
