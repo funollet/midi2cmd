@@ -21,9 +21,12 @@ Default mode is 'key' if WAIT_MODE is not set.
 import os
 import signal
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Literal
 
 import mido
+from mido import Message  # type: ignore[import-untyped]
 
 PORT_NAME = "miditest"
 
@@ -47,23 +50,27 @@ class VirtualMidiDevice:
 
     port_name: str
 
-    def _wait_signal(self):
+    def _wait_signal(self) -> None:
         """Wait for SIGUSR1 signal."""
         signal.signal(signal.SIGUSR1, lambda signum, frame: None)
         signal.pause()
 
-    def _wait_key(self):
+    def _wait_key(self) -> None:
         """Wait for keypress."""
         input("Press Enter to send next message...")
 
-    def _wait_pause(self):
+    def _wait_pause(self) -> None:
         """Wait 1 second."""
         time.sleep(1)
 
-    def run(self, messages: list, wait_mode: str = "signal"):
+    def run(
+        self,
+        messages: list[Message],
+        wait_mode: Literal["signal", "key", "pause"] = "signal",
+    ) -> None:
         """Create virtual MIDI port and send messages based on wait mode."""
         # Select wait function based on mode
-        wait_funcs = {
+        wait_funcs: dict[str, Callable[[], None]] = {
             "signal": self._wait_signal,
             "key": self._wait_key,
             "pause": self._wait_pause,
@@ -78,10 +85,10 @@ class VirtualMidiDevice:
                 port.send(msg)
 
 
-def main():
+def main() -> None:
     """Create a virtual MIDI port and send messages."""
     device = VirtualMidiDevice(port_name=PORT_NAME)
-    device.run(messages=MESSAGES, wait_mode=WAIT_MODE)
+    device.run(messages=MESSAGES, wait_mode=WAIT_MODE)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
