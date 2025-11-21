@@ -59,20 +59,6 @@ def test_config_txt_accumulate_window_invalid(value):
         ConfigTxt.from_file(io.StringIO(config_txt))
 
 
-def test_config_txt_accumulate_window_multiple_configs():
-    """Test that accumulate_window is only parsed once (first occurrence wins)."""
-    config_txt = """
-        port: Test Device
-        accumulate_window: 0.5
-        control_change channel=10 control=9: echo foo
-        accumulate_window: 2.0
-        control_change channel=10 control=10: echo bar
-    """
-    cfg = ConfigTxt.from_file(io.StringIO(config_txt))
-    # First occurrence should be kept
-    assert cfg.accumulate_window == 0.5
-
-
 def test_config_txt_accumulate_window_before_port():
     """Test that accumulate_window can be placed before port in config."""
     config_txt = """

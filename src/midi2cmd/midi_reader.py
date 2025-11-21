@@ -8,6 +8,30 @@ from mido.frozen import (  # type: ignore[import-untyped]
 )
 
 
+def _parse_accumulate_window(line: str) -> float:
+    """Parse accumulate_window value from config line.
+
+    Args:
+        line: Config line starting with "accumulate_window:"
+
+    Returns:
+        Float value in seconds
+
+    Raises:
+        ValueError: If value is not a positive number
+    """
+    value_str = line.split(":", 1)[1].strip()
+    try:
+        value = float(value_str)
+    except ValueError:
+        raise ValueError(
+            f"Invalid accumulate_window value '{value_str}': must be a positive number"
+        )
+    if value <= 0:
+        raise ValueError(f"Invalid accumulate_window value {value}: must be positive")
+    return value
+
+
 class MessageDict(dict):
     """
     A dict with mido.Message's as keys.
@@ -58,6 +82,7 @@ class ConfigTxt:
     """A class to hold the configuration parsed from a config.txt file."""
 
     port: str = ""
+    accumulate_window: float = 0.5
     commands: MessageDict = field(default_factory=MessageDict)
 
     def read(self, txt: IO[str]) -> None:
@@ -68,6 +93,8 @@ class ConfigTxt:
                 continue
             if line.startswith("port:"):
                 self.port = line.split(":", 1)[1].strip()
+            elif line.startswith("accumulate_window:"):
+                self.accumulate_window = _parse_accumulate_window(line)
             else:
                 message, cmd = line.split(":", 1)
                 self.commands[mido.Message.from_str(message)] = cmd.strip()

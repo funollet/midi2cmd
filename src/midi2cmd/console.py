@@ -34,6 +34,8 @@ def load_config_txt(fname: str) -> ConfigTxt:
             return ConfigTxt.from_file(f)
     except FileNotFoundError:
         raise typer.BadParameter(f"Can't read file {fname}.")
+    except ValueError as e:
+        raise typer.BadParameter(f"Invalid configuration in {fname}: {e}")
 
 
 app = typer.Typer()
