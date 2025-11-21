@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(just test:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run mypy:*)",
+      "Bash(uv run ruff:*)",
+      "WebFetch(domain:mido.readthedocs.io)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
